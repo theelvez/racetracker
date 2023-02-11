@@ -1,51 +1,44 @@
-import json
-import pymysql
+# app.py
 
-from flask import Flask
-from flask import request
-from flask import render_template
+from flask import Flask, render_template, request
+import sqlite3
 
 app = Flask(__name__)
 
-# Connect to MySQL database
-db = pymysql.connect(host='localhost',
-                     user='root',
-                     password='password',
-                     db='racetracker',
-                     cursorclass=pymysql.cursors.DictCursor)
-
 @app.route("/")
-def home():
-    # Retrieve race data from database
-    with db.cursor() as cursor:
-        cursor.execute('SELECT * FROM race_data')
-        race_data = cursor.fetchall()
+def index():
+    return render_template("index.html")
 
-    # Create list of racers
-    racers = race_data['racers']
+@app.route("/upload_races", methods=["POST"])
+def upload_races():
+    if request.method == "POST":
+        # get the data from the ICD
+        data = request.get_json()
 
-    # Create list of race results
-    results = []
-    for racer in racers:
-        if racer['hasFinished']:
-            results.append((racer['name'],
-                            racer['carModel'],
-                            racer['carYear'],
-                            racer['highestSpeed']))
-        else:
-            results.append((racer['name'],
-                            racer['carModel'],
-                            racer['carYear'],
-                            'N/A'))
+        # insert the data into the database
+        conn = sqlite3.connect("speedtracker.db")
+        c = conn.cursor()
+        c.execute("INSERT INTO races (driver_id, car_id, start_time, finish_time, highest_speed) VALUES (?, ?, ?, ?, ?)", (data["driver_id"], data["car_id"], data["start_time"], data["finish_time"], data["highest_speed"]))
+        conn.commit()
+        conn.close()
 
-    # Render template with race data
-    return render_template('result.html', 
-                           race_name=race_data['name'],
-                           results=results) 
+        return "Success"
 
-@app.route("/result.html")
-def result_template():
-    return render_template('result.html')
+@app.route("/add_driver", methods=["POST"])
+def add_driver():
+    if request.method == "POST":
+        # get the data from the ICD
+        data = request.get_json()
 
-if __name__ == '__main__':
-    app.run(debug=True)
+        # insert the data into the database
+        conn = sqlite3.connect("speedtracker.db")
+        c = conn.cursor()
+        c.execute("INSERT INTO drivers (name, car_make, car_model, car_year) VALUES (?, ?, ?, ?)", (data["name"], data["car_make"], data["car_model"], data["car_year"]))
+        conn.commit()
+        conn.close()
+
+        return "Success"
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=80)
