@@ -6,6 +6,13 @@ sudo apt-get install hostapd dnsmasq -y
 sudo systemctl stop hostapd
 sudo systemctl disable hostapd
 
+interface=wlan0
+driver=nl80211
+ssid=speedtracker
+hw_mode=g
+channel=1
+wmm_enabled=0
+
 echo "interface wlan0
     static ip_address=10.0.0.1/24
     nohook wpa_supplicant
