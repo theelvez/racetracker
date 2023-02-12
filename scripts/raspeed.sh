@@ -105,3 +105,96 @@ sudo cat > /var/www/templates/index.html <<EOF
         <thead>
             <tr>
                 <th>Driver Name</th>
+                
+                
+                
+# 4. Install the required Python packages for Flask and SQLite3
+sudo apt-get update
+sudo apt-get install python3 python3-pip sqlite3
+sudo pip3 install flask
+
+# 5. Create a directory to hold the Flask application and database
+sudo mkdir /var/www/speedtracker
+cd /var/www/speedtracker
+
+# 6. Create a new Flask application and SQLite3 database
+sudo touch app.py
+sudo touch speedtracker.db
+sudo chmod 777 speedtracker.db
+
+# 7. Add the following code to app.py
+# (Please note that this is just a basic Flask application, you will need to add your own custom routes and functions)
+cat <<EOT >> app.py
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return 'Welcome to the Speedtracker Race Hub!'
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0')
+EOT
+
+# 8. Initialize the database with the required tables
+sqlite3 speedtracker.db < create_tables.sql
+
+# 9. Set up a systemd service for the Flask application
+sudo touch /etc/systemd/system/speedtracker.service
+cat <<EOT >> /etc/systemd/system/speedtracker.service
+[Unit]
+Description=Speedtracker Flask App
+After=network.target
+
+[Service]
+User=pi
+WorkingDirectory=/var/www/speedtracker
+ExecStart=/usr/bin/python3 app.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOT
+
+# 10. Start the service and enable it to start on boot
+sudo systemctl daemon-reload
+sudo systemctl start speedtracker
+sudo systemctl enable speedtracker
+
+# 11. Set up the IPD to be an access point for the speedtracker network
+sudo cp /etc/dhcpcd.conf /etc/dhcpcd.conf.bak
+sudo touch /etc/hostapd/hostapd.conf
+sudo chmod 777 /etc/hostapd/hostapd.conf
+
+# 12. Add the following code to /etc/dhcpcd.conf
+cat <<EOT >> /etc/dhcpcd.conf
+interface wlan0
+    static ip_address=10.0.0.1/24
+    nohook wpa_supplicant
+EOT
+
+# 13. Add the following code to /etc/hostapd/hostapd.conf
+cat <<EOT >> /etc/hostapd/hostapd.conf
+interface=wlan0
+ssid=speedtracker
+hw_mode=g
+channel=6
+ieee80211n=1
+wmm_enabled=1
+ht_capab=[HT40][SHORT-GI-20][DSSS_CCK-40]
+macaddr_acl=0
+auth_algs=1
+ignore_broadcast_ssid=0
+wpa=2
+wpa_passphrase=MySuperSecretPassword
+wpa_key_mgmt=WPA-PSK
+wpa_pairwise=TKIP
+rsn_pairwise=CCMP
+EOT
+
+# 14. Restart the hostapd service
+sudo systemctl restart hostapd
+
+# 15. Reboot the IPD to apply all changes
+sudo reboot
