@@ -1,73 +1,80 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-  <head>
-    <title>Race Results</title>
-    <style>
-      body {
-        font-family: sans-serif;
-        background-color: #222;
-        color: #f00;
-      }
-      h1 {
-        font-size: 2.5em;
-        font-weight: bold;
-        padding: 5px;
-        margin: 10px;
-        background-color: #f00;
-        color: #fff;
-      }
-      h2 {
-        font-size: 1.5em;
-        font-weight: bold;
-        padding: 5px;
-        margin: 10px;
-        background-color: #f00;
-        color: #fff;
-      }
-      table {
-        border-collapse: collapse;
-        width: 100%;
-      }
-      th, td {
-        border: 1px solid #f00;
-        padding: 5px;
-      }
-      th {
-        background-color: #f00;
-        color: #fff;
-      }
-      td {
-        background-color: #222;
-        color: #f00;
-      }
-    </style>
-  </head>
-  <body>
-    <h1>Race Results</h1>
-    <h2>Completed Races</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Driver Name</th>
-          <th>Car Model</th>
-          <th>Top Speed</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Add rows for each completed race here -->
-      </tbody>
-    </table>
-    <h2>Upcoming Races</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Race Name</th>
-          <th>Start Time</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Add rows for each upcoming race here -->
-      </tbody>
-    </table>
-  </body>
-</html>
+<head>
+    <meta charset="utf-8">
+    <title>Record Race Coordinates</title>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY"></script>
+    <script>
+        var finish_map, finish_marker, start_map, start_marker;
+
+        function initFinishMap() {
+            finish_map = new google.maps.Map(document.getElementById('finish_map'), {
+                center: {lat: 37.7749, lng: -122.4194},
+                zoom: 13
+            });
+            finish_marker = new google.maps.Marker({
+                position: {lat: 37.7749, lng: -122.4194},
+                map: finish_map,
+                title: 'Finish Line'
+            });
+        }
+
+        function initStartMap() {
+            start_map = new google.maps.Map(document.getElementById('start_map'), {
+                center: {lat: 37.7749, lng: -122.4194},
+                zoom: 13
+            });
+            start_marker = new google.maps.Marker({
+                position: {lat: 37.7749, lng: -122.4194},
+                map: start_map,
+                title: 'Start Line'
+            });
+        }
+
+        function getCurrentLocation(map) {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function (position) {
+                    var pos = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    map.setCenter(pos);
+                    var marker = new google.maps.Marker({
+                        position: pos,
+                        map: map
+                    });
+                }, function () {
+                    alert('Error: The Geolocation service failed.');
+                });
+            } else {
+                alert('Error: Your browser doesn\'t support geolocation.');
+            }
+        }
+    </script>
+</head>
+<body onload="initStartMap(); initFinishMap();">
+    <h1>Record Race Coordinates</h1>
+    <div id="start_map" style="height: 500px; width: 100%;"></div>
+    <button onclick="getCurrentLocation(start_map)">Record Start Line Coordinates</button>
+    <div id="finish_map" style="height: 500px; width: 100%;"></div>
+    <button onclick="getCurrentLocation(finish_map)">Record Finish Line Coordinates</button>
+    <form action="/race" method="post">
+        <label for="driver_name">Driver Name:</label>
+        <input type="text" id="driver_name" name="driver_name"><br><br>
+        <label for="car_make">Car Make:</label>
+        <input type="text" id="car_make" name="car_make"><br><br>
+        <label for="car_model">Car Model:</label>
+        <input type="text" id="car_model" name="car_model"><br><br>
+        <input type="hidden" id="start_lat" name="start_lat" value="">
+        <input type="hidden" id="start_lng" name="start_lng" value="">
+        <input type="hidden" id="finish_lat" name="finish_lat" value="">
+        <input type="hidden" id="finish_lng" name="finish_lng" value="">
+        <input type="submit" value="Save">
+    </form>
+    <script>
+        var start_lat = document.getElementById('start_lat');
+        var start_lng = document.getElementById('start_lng');
+        var finish_lat = document.getElementById('finish_lat');
+        var finish_lng = document.getElementById('finish_lng');
+
+        function setStartCoords(lat,
