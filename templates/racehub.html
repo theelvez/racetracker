@@ -1,0 +1,73 @@
+# Create the HTML template for the website
+sudo mkdir /var/www/templates
+sudo cat > /var/www/templates/index.html <<EOF
+<!doctype html>
+<html>
+<head>
+    <title>Race Hub</title>
+</head>
+<body>
+    <h1>Race Hub</h1>
+    <h2>Current Race</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Driver Name</th>
+                <th>Car Make</th>
+                <th>Car Model</th>
+                <th>Highest Speed</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>John Doe</td>
+                <td>Ford</td>
+                <td>Mustang</td>
+                <td>150 mph</td>
+            </tr>
+        </tbody>
+    </table>
+    <h2>Next 5 Drivers</h2>
+    <ol>
+        <li>Jane Doe</li>
+        <li>Bob Smith</li>
+        <li>Alice Johnson</li>
+        <li>Tom Green</li>
+        <li>Susan Lee</li>
+    </ol>
+    <h2>Previous Races</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Driver Name</th>
+                <th>Car Make</th>
+                <th>Car Model</th>
+                <th>Highest Speed</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>John Doe</td>
+                <td>Ford</td>
+                <td>Mustang</td>
+                <td>150 mph</td>
+            </tr>
+            <tr>
+                <td>Jane Doe</td>
+                <td>Chevy</td>
+                <td>Corvette</td>
+                <td>135 mph</td>
+            </tr>
+            <tr>
+                <td>Bob Smith</td>
+                <td>Ford</td>
+                <td>Focus</td>
+                <td>120 mph</td>
+            </tr>
+        </tbody>
+    </table>
+    <h2>Current Top Speed</h2>
+    <p>John Doe - Ford Mustang: 150 mph</p>
+</body>
+</html>
+EOF
