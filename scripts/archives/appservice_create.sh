@@ -2,11 +2,8 @@
 
 # create an Azure App Service named "speedtracker"
 
-az appservice web create \
---resource-group "screamingelfresources" \
---plan "screamingelfappserviceplan" \
---name "speedtracker" \
---deployment-local-git
+az login
+az appservice web create --resource-group "screamingelfresources" --plan "screamingelfappserviceplan" --name "speedtracker" --deployment-local-git
 
 # upload all the code to the appservice web app
 
