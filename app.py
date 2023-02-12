@@ -1,44 +1,46 @@
-# app.py
-
 from flask import Flask, render_template, request
+import qrcode
 import sqlite3
 
 app = Flask(__name__)
 
+# Define a route to serve the driver registration form
 @app.route("/")
-def index():
-    return render_template("index.html")
+def registration_form():
+    return render_template("registration.html")
 
-@app.route("/upload_races", methods=["POST"])
-def upload_races():
-    if request.method == "POST":
-        # get the data from the ICD
-        data = request.get_json()
+# Define a route to handle the form submission
+@app.route("/register", methods=["POST"])
+def register_driver():
+    # Retrieve the form data
+    name = request.form.get("name")
+    car_make = request.form.get("car_make")
+    car_model = request.form.get("car_model")
 
-        # insert the data into the database
-        conn = sqlite3.connect("speedtracker.db")
-        c = conn.cursor()
-        c.execute("INSERT INTO races (driver_id, car_id, start_time, finish_time, highest_speed) VALUES (?, ?, ?, ?, ?)", (data["driver_id"], data["car_id"], data["start_time"], data["finish_time"], data["highest_speed"]))
-        conn.commit()
-        conn.close()
+    # Generate a unique ID for the driver
+    driver_id = generate_driver_id()
 
-        return "Success"
+    # Add the driver to the database
+    conn = sqlite3.connect("speedtracker.db")
+    c = conn.cursor()
+    c.execute("INSERT INTO drivers (id, name, car_make, car_model) VALUES (?, ?, ?, ?)", (driver_id, name, car_make, car_model))
+    conn.commit()
+    conn.close()
 
-@app.route("/add_driver", methods=["POST"])
-def add_driver():
-    if request.method == "POST":
-        # get the data from the ICD
-        data = request.get_json()
+    # Generate the QR code for the driver ID
+    qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=10, border=4)
+    qr.add_data(driver_id)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
 
-        # insert the data into the database
-        conn = sqlite3.connect("speedtracker.db")
-        c = conn.cursor()
-        c.execute("INSERT INTO drivers (name, car_make, car_model, car_year) VALUES (?, ?, ?, ?)", (data["name"], data["car_make"], data["car_model"], data["car_year"]))
-        conn.commit()
-        conn.close()
+    # Serve the driver ID and QR code to the user
+    return render_template("qr_code.html", driver_id=driver_id, qr_code=img)
 
-        return "Success"
-
+def generate_driver_id():
+    # Generate a random 8-character driver ID
+    import random
+    import string
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=80)
+    app.run(host="0.0.0.0", port=5000)
