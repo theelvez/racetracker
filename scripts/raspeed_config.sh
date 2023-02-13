@@ -113,13 +113,6 @@ session = DBSession()
 @app.route('/')
 def index():
     drivers = session.query(Driver).all()
-    races = session.query(Race
-DBSession = sessionmaker(bind=engine)
-session = DBSession()
-
-@app.route('/')
-def index():
-    drivers = session.query(Driver).all()
     races = session.query(Race).all()
     return render_template('index.html', drivers=drivers, races=races)
 
